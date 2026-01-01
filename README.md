@@ -264,6 +264,6 @@ Contributions are welcome! Please read our [Contributing Guide](./CONTRIBUTING.m
 
 ## 📄 Licence
 
-MIT © [Your Name]
+MIT © Colin Olliver
 
 ---Built with ❤️ using Azure Static Web Apps
