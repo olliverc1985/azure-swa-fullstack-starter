@@ -1,0 +1,302 @@
+name: Deploy Azure SWA Starter
+
+# ⚠️ DEPLOYMENT DISABLED FOR OPEN SOURCE
+# This workflow is configured for manual dispatch only.
+# To enable automatic deployments:
+# 1. Configure your Azure resources (see infrastructure/bicep/main.bicep)
+# 2. Set up GitHub secrets (AZURE_CREDENTIALS, AZURE_STATIC_WEB_APPS_API_TOKEN, JWT_SECRET)
+# 3. Update resource names below to match your deployment
+# 4. Uncomment the push/pull_request triggers
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  # Automatic deployments disabled - uncomment to enable:
+  # push:
+  #   branches: [main, prod]
+  #   paths:
+  #     - 'app/**'
+  #     - 'infrastructure/bicep/**'
+  #     - '.github/workflows/deploy.yml'
+  # pull_request:
+  #   branches: [main, prod]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - prod
+
+env:
+  NODE_VERSION: '20.x'
+  LOCATION: westeurope
+
+jobs:
+  # Determine environment based on branch
+  set-environment:
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+      resource_group: ${{ steps.set-env.outputs.resource_group }}
+      static_web_app: ${{ steps.set-env.outputs.static_web_app }}
+      key_vault: ${{ steps.set-env.outputs.key_vault }}
+      cosmos_db: ${{ steps.set-env.outputs.cosmos_db }}
+      app_insights: ${{ steps.set-env.outputs.app_insights }}
+      name_suffix: ${{ steps.set-env.outputs.name_suffix }}
+    steps:
+      - name: Set environment variables
+        id: set-env
+        run: |
+          # Determine environment from branch or manual input
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            ENV="${{ github.event.inputs.environment }}"
+          elif [[ "${{ github.ref }}" == "refs/heads/prod" ]]; then
+            ENV="prod"
+          else
+            ENV="dev"
+          fi
+          
+          echo "environment=$ENV" >> $GITHUB_OUTPUT
+          
+          # ⚠️ UPDATE THESE VALUES for your Azure deployment
+          # Replace 'yourapp' with your application prefix
+          if [[ "$ENV" == "prod" ]]; then
+            echo "resource_group=rg-yourapp-prod-weu-001" >> $GITHUB_OUTPUT
+            echo "static_web_app=swa-yourapp-prod-weu-001" >> $GITHUB_OUTPUT
+            echo "key_vault=kvyourappprodweu001" >> $GITHUB_OUTPUT
+            echo "cosmos_db=cosmos-yourapp-prod-weu-001" >> $GITHUB_OUTPUT
+            echo "app_insights=appi-yourapp-prod-weu-001" >> $GITHUB_OUTPUT
+            echo "name_suffix=001" >> $GITHUB_OUTPUT
+          else
+            echo "resource_group=rg-yourapp-dev-weu-001" >> $GITHUB_OUTPUT
+            echo "static_web_app=swa-yourapp-dev-weu-001" >> $GITHUB_OUTPUT
+            echo "key_vault=kvyourappdevweu001" >> $GITHUB_OUTPUT
+            echo "cosmos_db=cosmos-yourapp-dev-weu-001" >> $GITHUB_OUTPUT
+            echo "app_insights=appi-yourapp-dev-weu-001" >> $GITHUB_OUTPUT
+            echo "name_suffix=001" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "🚀 Deploying to $ENV environment"
+
+  # Infrastructure Deployment
+  deploy-infrastructure:
+    needs: set-environment
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/prod' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: ${{ needs.set-environment.outputs.environment }}
+    outputs:
+      static_web_app_url: ${{ steps.swa-url.outputs.static_web_app_url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Create Resource Group
+        run: |
+          az group create \
+            --name ${{ needs.set-environment.outputs.resource_group }} \
+            --location ${{ env.LOCATION }} \
+            --tags Environment=${{ needs.set-environment.outputs.environment }} Project="Azure SWA Starter" ManagedBy="GitHub Actions"
+
+      - name: Deploy Infrastructure
+        run: |
+          az deployment group create \
+            --resource-group "${{ needs.set-environment.outputs.resource_group }}" \
+            --name "swa-infra-$(date +%Y%m%d-%H%M%S)" \
+            --template-file "./infrastructure/bicep/main.bicep" \
+            --parameters environment="${{ needs.set-environment.outputs.environment }}" nameSuffix="${{ needs.set-environment.outputs.name_suffix }}"
+
+      - name: Get Static Web App URL
+        id: swa-url
+        run: |
+          SWA_URL=$(az staticwebapp show \
+            --name ${{ needs.set-environment.outputs.static_web_app }} \
+            --resource-group ${{ needs.set-environment.outputs.resource_group }} \
+            --query defaultHostname -o tsv)
+          echo "static_web_app_url=https://$SWA_URL" >> $GITHUB_OUTPUT
+
+      - name: Store Secrets in Key Vault
+        run: |
+          RUNNER_IP=$(curl -s https://api.ipify.org)
+          az keyvault network-rule add \
+            --name ${{ needs.set-environment.outputs.key_vault }} \
+            --resource-group ${{ needs.set-environment.outputs.resource_group }} \
+            --ip-address $RUNNER_IP || true
+          
+          sleep 10
+          
+          COSMOS_CONNECTION_STRING=$(az cosmosdb keys list \
+            --name ${{ needs.set-environment.outputs.cosmos_db }} \
+            --resource-group ${{ needs.set-environment.outputs.resource_group }} \
+            --type connection-strings \
+            --query "connectionStrings[0].connectionString" \
+            --output tsv)
+          
+          # Mask secrets in logs
+          echo "::add-mask::$COSMOS_CONNECTION_STRING"
+          
+          az keyvault secret set --vault-name ${{ needs.set-environment.outputs.key_vault }} --name "CosmosDbConnectionString" --value "$COSMOS_CONNECTION_STRING"
+          az keyvault secret set --vault-name ${{ needs.set-environment.outputs.key_vault }} --name "JwtSecret" --value "${{ secrets.JWT_SECRET }}"
+          
+          az keyvault network-rule remove \
+            --name ${{ needs.set-environment.outputs.key_vault }} \
+            --resource-group ${{ needs.set-environment.outputs.resource_group }} \
+            --ip-address $RUNNER_IP || true
+
+  # Build and Deploy Application
+  build-and-deploy:
+    needs: [set-environment, deploy-infrastructure]
+    if: success()
+    runs-on: ubuntu-latest
+    environment: ${{ needs.set-environment.outputs.environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: |
+            app/package-lock.json
+            app/api/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./app
+        run: npm ci
+
+      - name: Install API dependencies
+        working-directory: ./app/api
+        run: npm ci
+
+      - name: Retrieve Secrets from Key Vault
+        run: |
+          RUNNER_IP=$(curl -s https://api.ipify.org)
+          az keyvault network-rule add \
+            --name ${{ needs.set-environment.outputs.key_vault }} \
+            --resource-group ${{ needs.set-environment.outputs.resource_group }} \
+            --ip-address $RUNNER_IP || true
+          
+          sleep 10
+          
+          COSMOS_CONN=$(az keyvault secret show --vault-name ${{ needs.set-environment.outputs.key_vault }} --name CosmosDbConnectionString --query value -o tsv)
+          JWT_SECRET=$(az keyvault secret show --vault-name ${{ needs.set-environment.outputs.key_vault }} --name JwtSecret --query value -o tsv 2>/dev/null || echo "")
+          
+          # Mask secrets in logs
+          echo "::add-mask::$COSMOS_CONN"
+          echo "::add-mask::$JWT_SECRET"
+          
+          echo "COSMOS_DB_CONNECTION_STRING=$COSMOS_CONN" >> $GITHUB_ENV
+          echo "JWT_SECRET=$JWT_SECRET" >> $GITHUB_ENV
+          
+          az keyvault network-rule remove \
+            --name ${{ needs.set-environment.outputs.key_vault }} \
+            --resource-group ${{ needs.set-environment.outputs.resource_group }} \
+            --ip-address $RUNNER_IP || true
+
+      - name: Deploy to Azure Static Web Apps
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "app"
+          output_location: "dist"
+          api_location: "app/api"
+
+      - name: Configure SWA Environment Variables
+        run: |
+          RUNNER_IP=$(curl -s https://api.ipify.org)
+          az keyvault network-rule add \
+            --name ${{ needs.set-environment.outputs.key_vault }} \
+            --resource-group ${{ needs.set-environment.outputs.resource_group }} \
+            --ip-address $RUNNER_IP || true
+          
+          sleep 10
+          
+          COSMOS_CONN=$(az keyvault secret show --vault-name ${{ needs.set-environment.outputs.key_vault }} --name CosmosDbConnectionString --query value -o tsv)
+          JWT_SECRET=$(az keyvault secret show --vault-name ${{ needs.set-environment.outputs.key_vault }} --name JwtSecret --query value -o tsv 2>/dev/null || echo "")
+          
+          # Mask secrets in logs
+          echo "::add-mask::$COSMOS_CONN"
+          echo "::add-mask::$JWT_SECRET"
+          
+          # Get Application Insights connection string
+          APPINSIGHTS_CONN=$(az monitor app-insights component show \
+            --app ${{ needs.set-environment.outputs.app_insights }} \
+            --resource-group ${{ needs.set-environment.outputs.resource_group }} \
+            --query connectionString -o tsv 2>/dev/null || echo "")
+          echo "::add-mask::$APPINSIGHTS_CONN"
+          
+          az staticwebapp appsettings set \
+            --name ${{ needs.set-environment.outputs.static_web_app }} \
+            --resource-group ${{ needs.set-environment.outputs.resource_group }} \
+            --setting-names \
+              "COSMOS_DB_CONNECTION_STRING=$COSMOS_CONN" \
+              "JWT_SECRET=$JWT_SECRET" \
+              "APPLICATIONINSIGHTS_CONNECTION_STRING=$APPINSIGHTS_CONN"
+          
+          az keyvault network-rule remove \
+            --name ${{ needs.set-environment.outputs.key_vault }} \
+            --resource-group ${{ needs.set-environment.outputs.resource_group }} \
+            --ip-address $RUNNER_IP || true
+
+      - name: Health check
+        run: |
+          sleep 30
+          curl -f ${{ needs.deploy-infrastructure.outputs.static_web_app_url }} || exit 1
+          echo "✅ Application deployed successfully to ${{ needs.set-environment.outputs.environment }}"
+
+  # Lint and Test (runs in parallel with deployment)
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: |
+            app/package-lock.json
+            app/api/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: ./app
+        run: npm ci
+
+      - name: Install API dependencies
+        working-directory: ./app/api
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: ./app
+        run: npm run lint || true
+
+      - name: Run frontend tests
+        working-directory: ./app
+        run: npm test -- --run --reporter=verbose
+
+      - name: Run API tests
+        working-directory: ./app/api
+        run: npm test -- --run --reporter=verbose
+        env:
+          JWT_SECRET: test-secret-for-ci

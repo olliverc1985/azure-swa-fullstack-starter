@@ -1,0 +1,18 @@
+// Export all function handlers
+export * from './functions/auth-login'
+export * from './functions/auth-register'
+export * from './functions/clients'
+export * from './functions/register'
+export * from './functions/dashboard'
+export * from './functions/dashboard-analytics'
+export * from './functions/dashboard-trends'
+export * from './functions/invoices'
+export * from './functions/settings'
+export * from './functions/incidents'
+export * from './functions/client-notes'
+export * from './functions/staff'
+export * from './functions/staff-register'
+export * from './functions/staff-reconciliation'
+export * from './functions/client-registration'
+export * from './functions/health'
+

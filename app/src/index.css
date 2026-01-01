@@ -1,0 +1,246 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Primary brand colours */
+  --color-primary: 238 116 16;
+  --color-accent: 168 85 247;
+  
+  /* Neutral tones */
+  --color-gold: 245 189 89;
+  --color-cream: 250 250 252;
+  --color-warm-white: 252 252 254;
+  
+  /* Background gradients - neutral slate/blue */
+  --gradient-page: linear-gradient(145deg, 
+    rgb(248 250 252) 0%, 
+    rgb(241 245 249) 30%,
+    rgb(248 250 252) 50%,
+    rgb(241 245 249) 70%,
+    rgb(248 250 252) 100%);
+  --gradient-page-accent: linear-gradient(145deg,
+    rgb(241 245 249) 0%,
+    rgb(248 250 252) 50%,
+    rgb(241 245 249) 100%);
+  
+  /* Glass effect tokens */
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-bg-strong: rgba(255, 255, 255, 0.9);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-shadow: 
+    0 4px 24px -4px rgba(0, 0, 0, 0.06),
+    0 2px 8px -2px rgba(0, 0, 0, 0.04);
+  --glass-shadow-lg: 
+    0 8px 32px -8px rgba(0, 0, 0, 0.1),
+    0 4px 16px -4px rgba(0, 0, 0, 0.06);
+  
+  /* Semantic colours - warmer tones */
+  --color-background: 255 251 245;
+  --color-foreground: 41 37 36;
+  --color-surface: 255 253 250;
+  --color-surface-elevated: 255 255 255;
+  --color-border: 235 230 220;
+  --color-border-subtle: 243 240 235;
+  --color-muted: 120 113 108;
+}
+
+@layer base {
+  * {
+    @apply border-gray-200;
+  }
+  
+  /* Prevent text size adjustment on orientation change */
+  html {
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  
+  body {
+    @apply font-sans antialiased;
+    background: var(--gradient-page);
+    color: rgb(var(--color-foreground));
+    /* Prevent double-tap zoom on buttons/inputs */
+    touch-action: manipulation;
+    /* iOS Safari scrolling fixes */
+    -webkit-overflow-scrolling: touch;
+    /* Prevent rubber band scrolling on iOS */
+    overscroll-behavior: contain;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  /* Custom scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-gray-100 rounded-full;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-full hover:bg-gray-400;
+  }
+  
+  /* Focus ring */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  }
+  
+  /* Card hover effect */
+  .card-hover {
+    @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .animate-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  /* Hide scrollbar for horizontal scrolling areas */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
+  
+  /* Touch-friendly tap targets */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Page background */
+  .bg-page {
+    background: var(--gradient-page);
+  }
+  
+  .bg-page-accent {
+    background: var(--gradient-page-accent);
+  }
+  
+  /* Glass morphism effects */
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  
+  .glass-strong {
+    background: var(--glass-bg-strong);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  
+  /* Soft shadows */
+  .shadow-soft {
+    box-shadow: var(--glass-shadow);
+  }
+  
+  .shadow-soft-lg {
+    box-shadow: var(--glass-shadow-lg);
+  }
+  
+  /* Spotlight/ambient orb effects */
+  .spotlight {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    pointer-events: none;
+  }
+  
+  .spotlight-orange {
+    background: radial-gradient(circle, rgba(238, 116, 16, 0.12) 0%, transparent 70%);
+  }
+  
+  .spotlight-purple {
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.08) 0%, transparent 70%);
+  }
+  
+  .spotlight-gold {
+    background: radial-gradient(circle, rgba(245, 189, 89, 0.1) 0%, transparent 70%);
+  }
+  
+  .spotlight-blue {
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+  }
+
+  /* iOS Safari specific fixes */
+  @supports (-webkit-touch-callout: none) {
+    /* iOS Safari input fixes */
+    input[type="date"],
+    input[type="datetime-local"],
+    input[type="time"] {
+      /* Prevent zoom on focus */
+      font-size: 16px;
+      /* Better date picker appearance */
+      -webkit-appearance: none;
+      appearance: none;
+      background: white;
+      border-radius: 8px;
+    }
+
+    /* Fix momentum scrolling on iOS */
+    .ios-scroll-fix {
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+
+    /* Prevent iOS bounce scrolling on fixed elements */
+    .ios-fixed-scroll {
+      position: fixed;
+      -webkit-transform: translate3d(0, 0, 0);
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  /* Safe area handling for iOS devices with notches */
+  @supports (padding: max(0px)) {
+    .safe-top {
+      padding-top: max(16px, env(safe-area-inset-top));
+    }
+
+    .safe-bottom {
+      padding-bottom: max(16px, env(safe-area-inset-bottom));
+    }
+
+    .safe-left {
+      padding-left: max(16px, env(safe-area-inset-left));
+    }
+
+    .safe-right {
+      padding-right: max(16px, env(safe-area-inset-right));
+    }
+  }
+}
+
+/* Print styles for invoices */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-break {
+    page-break-after: always;
+  }
+  
+  body {
+    font-size: 12pt;
+  }
+}
+
+

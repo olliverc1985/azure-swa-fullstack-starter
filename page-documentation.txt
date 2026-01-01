@@ -1,0 +1,332 @@
+# Azure SWA Fullstack Starter - Page Documentation
+
+Last updated: 2025-12-31
+
+## Overview
+A production-ready web application template for managing client registrations, invoicing, and staff management. Built with React, Azure Functions, and Cosmos DB.
+
+## Deployment
+
+### Environments
+Configure your own Azure Static Web Apps deployment URLs:
+- **Production**: https://your-app.azurestaticapps.net (prod branch)
+- **Development**: https://your-app-dev.azurestaticapps.net (main branch)
+
+### Deployment Flow
+1. Feature branches → PR to main → DEV deployment
+2. main → PR to prod (requires approval) → PRODUCTION deployment
+
+See `.github/workflows/deploy.yml` for CI/CD configuration.
+
+---
+
+## Pages
+
+### Login Page (src/pages/LoginPage.tsx)
+- Purpose: User authentication
+- Features: Email/password login, rate limiting protection, JWT token storage
+- Access: Public (unauthenticated users)
+
+### Dashboard Page (src/pages/DashboardPage.tsx)
+- Purpose: Admin overview of business metrics and analytics
+- Features:
+  - Overview tab: Key stats, revenue trend, quick actions, at-risk clients alert
+  - Financial tab: Revenue comparisons, 12-month trends, revenue by day of week
+  - Clients tab: Client stats, top attendees leaderboard, at-risk clients list
+  - Operations tab: Daily stats, attendance by day of week
+  - Invoices tab: Invoice status breakdown (from API), outstanding payments
+  - Trends tab: 12-month revenue/sessions trends, growth rate
+- Access: Admin only
+- 2025-12-06: Replaced mocked invoice status data with real API endpoint (/dashboard/invoice-status)
+
+### Clients Page (src/pages/ClientsPage.tsx)
+- Purpose: Client management
+- Features:
+  - Search and filter clients
+  - Add/edit/delete clients with full form (contact, addresses, emergency contact, rates)
+  - View client quick view modal
+  - Client notes and incidents integration
+  - At-risk filter (from URL param ?filter=at-risk)
+- Access: All authenticated users
+- 2025-12-06: Added client delete functionality with confirmation modal; implemented at-risk filter from URL query params
+
+### Register Page (src/pages/RegisterPage.tsx)
+- Purpose: Daily attendance recording
+- Features:
+  - Date navigation with week view
+  - Client list filtered by attending day
+  - Attendance status: Present, Late Cancellation, or Absent
+  - Cash/invoice payment type selection (for present clients)
+  - Cash owed tracking (for present cash clients)
+  - Late cancellation support (billable but not physically present)
+  - Important info alerts for clients with medical/special notes
+  - Session notes
+- Access: All authenticated users
+- 2025-12-19: Added late cancellation support for 24hr notice policy
+
+### Invoices Page (src/pages/InvoicesPage.tsx)
+- Purpose: Invoice management
+- Features:
+  - Generate monthly invoices for all clients with sessions
+  - Filter by month/year
+  - Mark invoices as sent/paid
+  - Generate printable PDF (via print dialog)
+- Access: Admin only
+
+### Users Page (src/pages/UsersPage.tsx)
+- Purpose: User account management
+- Features:
+  - Create new users with role assignment (admin/worker)
+  - Delete users (except self)
+- Access: Admin only
+
+### Settings Page (src/pages/SettingsPage.tsx)
+- Purpose: Application settings
+- Features:
+  - Business details (name, address for invoices)
+  - Bank details (for invoice payment instructions)
+  - Session rates (standard/reduced)
+  - Password change
+- Access: Admin only
+
+### Staff Page (src/pages/StaffPage.tsx)
+- Purpose: Staff member management
+- Features:
+  - Add/edit/delete staff
+  - Link staff to user accounts for self check-in
+  - Set day rates and working days
+- Access: Admin only
+
+### Staff Register Page (src/pages/StaffRegisterPage.tsx)
+- Purpose: Daily attendance capture for staff
+- Features:
+  - Self check-in (linked to user account)
+  - Undo mistaken check-ins
+  - Notes for sessions
+- Access: All authenticated users
+- 2025-12-06: Added undo capability for mistaken check-ins with confirmation prompt
+
+### Staff Reconciliation Page (src/pages/StaffReconciliationPage.tsx)
+- Purpose: Monthly reconciliation of staff attendance vs invoices
+- Features:
+  - Month selector
+  - Summary of days worked and amounts per staff member
+- Access: Admin only
+- 2025-12-06: Improved month-end date calculation and error handling
+
+### Client Registration Page (src/pages/ClientRegistrationPage.tsx)
+- Purpose: Public form for clients to submit registration details
+- Route: /client-registration (shareable link)
+- Features:
+  - No authentication required (public link)
+  - Personal details (name, DOB, email, phone)
+  - Full address capture
+  - Emergency contact details (required)
+  - Important information (special requirements, preferences)
+  - Photo consent checkbox
+  - Optional billing details (different email/address)
+  - Honeypot spam protection
+  - Confirmation page after submission
+  - Uses configurable branding from app.config.ts
+- Access: Public (no authentication)
+- 2025-12-10: Initial implementation
+- 2025-12-31: Genericised placeholders and descriptions
+
+### Registrations Page (src/pages/RegistrationsPage.tsx)
+- Purpose: Admin view to review client registration submissions
+- Features:
+  - Filter by pending/reviewed/all
+  - View full registration details
+  - Mark registrations as reviewed
+  - Add admin notes
+  - Delete registrations
+- Access: Admin only
+- 2025-12-10: Initial implementation
+
+---
+
+## API Endpoints
+
+### Client Registrations (Public)
+- POST /api/client-registration - Submit registration (public, rate limited)
+
+### Client Registrations (Admin)
+- GET /api/registrations - List all registrations
+- GET /api/registrations/{id} - Get single registration
+- PUT /api/registrations/{id} - Update registration (mark reviewed, add notes)
+- DELETE /api/registrations/{id} - Delete registration
+
+### Authentication
+- POST /api/auth/login - User login with rate limiting
+- POST /api/auth/register - User registration (admin only)
+- PUT /api/auth/password - Password change
+
+### Dashboard
+- GET /api/dashboard/stats - Key business metrics
+- GET /api/dashboard/trends - Monthly revenue/sessions data
+- GET /api/dashboard/analytics - Detailed analytics (by-day, client activity, comparisons)
+- GET /api/dashboard/invoice-status - Invoice status breakdown (2025-12-06)
+
+### Clients
+- GET /api/clients - List all clients
+- GET /api/clients/{id} - Get single client
+- POST /api/clients - Create client
+- PUT /api/clients/{id} - Update client
+- DELETE /api/clients/{id} - Delete client
+
+### Register
+- GET /api/register - Get register entries (by date or month)
+- POST /api/register - Create register entry
+- PUT /api/register/{id} - Update register entry
+- DELETE /api/register/{id} - Delete register entry
+
+### Invoices
+- GET /api/invoices - List all invoices
+- GET /api/invoices/{id} - Get single invoice
+- POST /api/invoices/generate - Generate monthly invoices
+- PUT /api/invoices/{id}/status - Update invoice status
+
+### Incidents
+- GET /api/incidents - List incidents (optional clientId filter)
+- POST /api/incidents - Create incident
+- PUT /api/incidents/{id} - Update incident
+- DELETE /api/incidents/{id} - Delete incident
+
+### Client Notes
+- GET /api/client-notes - Get notes for client
+- POST /api/client-notes - Create note
+- PUT /api/client-notes/{id} - Update note
+- DELETE /api/client-notes/{id} - Delete note
+
+### Staff
+- GET /api/staff - List all staff
+- GET /api/staff/{id} - Get single staff member
+- GET /api/staff/by-user/{userId} - Get staff by user ID
+- POST /api/staff - Create staff member
+- PUT /api/staff/{id} - Update staff member
+- DELETE /api/staff/{id} - Delete staff member
+
+### Staff Register
+- GET /api/staff-register - Get staff register entries
+- POST /api/staff-register - Create staff register entry
+- PUT /api/staff-register/{id} - Update entry
+- DELETE /api/staff-register/{id} - Delete entry (undo check-in)
+
+### Staff Reconciliation
+- GET /api/staff-reconciliation - Get monthly reconciliation data
+
+### Settings
+- GET /api/settings - Get app settings
+- PUT /api/settings - Update app settings
+
+---
+
+## Database Containers (Cosmos DB)
+- users - User accounts
+- clients - Client records
+- register - Attendance/session records
+- invoices - Generated invoices
+- incidents - Incident reports
+- client-notes - Client notes
+- staff - Staff member records
+- staff-register - Staff attendance records
+- settings - Application settings
+- registrations - Public client registration submissions
+
+---
+
+## User Roles
+
+| Feature | Admin | Worker |
+|---------|-------|--------|
+| Dashboard | ✅ | ❌ |
+| Clients | ✅ | ✅ |
+| Register | ✅ | ✅ |
+| Invoices | ✅ | ❌ |
+| Users | ✅ | ❌ |
+| Settings | ✅ | ❌ |
+| Staff Management | ✅ | ❌ |
+| Staff Check-in | ✅ | ✅ |
+| Staff Reconciliation | ✅ | ❌ |
+| Client Registrations | ✅ | ❌ |
+
+---
+
+## Shared UI Components (src/components/ui)
+- Button, Input, Select, Textarea, Checkbox, RadioGroup
+- Card, CardHeader, CardTitle, CardContent
+- Badge, Alert, Skeleton, Loading
+- IconButton, FormGrid, FormSection, FormActions
+- Toast (via useToast hook)
+
+## Dashboard Components (src/components/dashboard)
+- DashboardTabs, DashboardTabContent, TabHeader
+- DashboardWidget, StatCard, ChartCard
+- TrendIndicator, ChartLegend, EmptyChart
+
+---
+
+## Recent Changes
+
+### 2025-12-19
+- Added 24-hour cancellation policy handling with new attendance statuses
+  - New AttendanceStatus type: 'present' | 'late-cancellation' | 'absent'
+  - 'present': Physically in the building, billable
+  - 'late-cancellation': Not present, but billable (cancelled with <24hr notice)
+  - 'absent': Not present, not billable
+- Updated Register page with late cancellation UI
+  - Click row cycles through: absent → present → late-cancellation → absent
+  - Late cancellations shown with amber/orange styling
+  - Summary shows separate counts for present vs late cancellations
+  - Late cancellations cannot owe cash (always invoiced)
+- Updated invoice generation to include late cancellations
+  - Late cancellations appear as "Late Cancellation - [date]" on invoices
+  - Regular sessions appear as "Session - [date]"
+- Added "Who's In" fire safety feature
+  - New FAB button accessible to all users
+  - Shows only physically present people (excludes late cancellations)
+  - Displays headcount for fire safety/evacuation purposes
+- Backend changes with full backwards compatibility
+  - New attendanceStatus field alongside legacy attended boolean
+  - Existing data with attended=true maps to 'present'
+  - All dashboard/analytics queries updated to use new billable logic
+
+### 2025-12-14
+- Fixed misleading dashboard comparison percentages (revenue/sessions)
+  - Previously compared current partial month (e.g., Dec 1-14) to full previous month (Nov 1-30)
+  - Now compares equivalent periods (e.g., Dec 1-14 vs Nov 1-14) for accurate comparison
+  - Added isPartialPeriod flag to API response
+  - Added "MTD" (month-to-date) badge on comparison cards when showing partial period
+  - Period labels now show date range (e.g., "December 1-14") instead of just month name
+- Fixed duplicate register entries bug causing inflated revenue figures
+  - Root cause: Register POST endpoints created new entries instead of updating existing ones
+  - Users saving register multiple times per day caused duplicate entries
+  - Fixed: POST /api/register now uses upsert logic (update if clientId+date exists, else create)
+  - Fixed: POST /api/register/bulk also uses upsert logic with optimised batch lookup
+  - Cleaned 195 duplicate entries from database (165 in Dec 2025, 30 in older months)
+  - December revenue corrected from £11,960 to £5,360
+
+### 2025-12-10
+- Added public Client Registration form (/client-registration)
+  - Public link for clients to submit registration details
+  - Rate limited to prevent abuse
+  - Captures personal details, address, emergency contact, important information
+  - Optional separate billing details
+  - Confirmation page after submission
+- Added Registrations admin page (/registrations)
+  - View and manage client registration submissions
+  - Filter by pending/reviewed status
+  - Mark as reviewed, add notes, delete
+- Added new API endpoints for client registrations
+- Added 'registrations' container to Cosmos DB (Bicep + database.ts)
+- Integrated configurable logo throughout the application
+- Added logo to Sidebar, MobileSidebar, and LoginPage
+- Added logo to invoice PDF generation (displays in header)
+- Logo path configurable via VITE_LOGO_PATH environment variable
+
+### 2025-12-06
+- Added invoice status breakdown API endpoint (/api/dashboard/invoice-status)
+- Replaced mocked invoice status data in dashboard with real API data
+- Added client delete functionality with confirmation modal
+- Implemented at-risk clients filter in ClientsPage (?filter=at-risk)
+- Updated page-documentation.txt with comprehensive app documentation

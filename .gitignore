@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+*.local
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+*.swo
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.*.local
+local.settings.json
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Testing
+coverage/
+.nyc_output
+
+# TypeScript
+*.tsbuildinfo
+
+# Azure Functions
+bin/
+obj/
+.python_packages/
+
+# Temporary
+tmp/
+temp/
+*.tmp
+
+# Python virtual env (from analysis)
+venv/
+
+# Reference repos (temporary)
+temp-aihealth-reference/
+
+# Secrets documentation (local only)
+SETUP-SECRETS.md

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <!-- Background circle -->
+  <circle cx="60" cy="60" r="56" fill="url(#gradient)" />
+  
+  <!-- Abstract geometric shape -->
+  <path d="M40 45 L60 30 L80 45 L80 75 L60 90 L40 75 Z" fill="white" opacity="0.9"/>
+  <path d="M50 52 L60 45 L70 52 L70 68 L60 75 L50 68 Z" fill="url(#gradient)" opacity="0.8"/>
+  
+  <!-- Gradient definition -->
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6"/>
+      <stop offset="100%" style="stop-color:#1d4ed8"/>
+    </linearGradient>
+  </defs>
+</svg>
