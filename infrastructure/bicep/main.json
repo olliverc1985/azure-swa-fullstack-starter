@@ -32,7 +32,7 @@
     },
     "githubActionsObjectId": {
       "type": "string",
-      "defaultValue": "9f41b24f-0fe6-413f-a851-abca4f4bc853",
+      "defaultValue": "",
       "metadata": {
         "description": "GitHub Actions service principal object ID for CI/CD Key Vault access"
       }

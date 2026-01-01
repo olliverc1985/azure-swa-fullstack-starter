@@ -11,7 +11,7 @@ param nameSuffix string = '002'
 param currentUserObjectId string = ''
 
 @description('GitHub Actions service principal object ID for CI/CD Key Vault access')
-param githubActionsObjectId string = 'fe95b3b0-c085-47bb-ab0c-4d1c5ce4f778'
+param githubActionsObjectId string = ''  // Set this to your service principal's object ID
 
 // Generate resource names based on environment and suffix
 // Customise these prefixes for your deployment
