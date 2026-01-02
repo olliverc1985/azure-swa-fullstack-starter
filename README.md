@@ -6,6 +6,10 @@ A feature-complete starter template for building modern fullstack applications o
 
 > 📋 **Note**: This template is configured for ease of development and learning. See the [Security Considerations](#-security-considerations) section for production hardening recommendations.
 
+## 🎥 Demo Video
+
+[![Watch the demo](https://img.shields.io/badge/▶️_Watch_Demo-YouTube-red?style=for-the-badge&logo=youtube)](https://youtu.be/GWONHEjJNBY)
+
 ## ✨ Features
 
 ### Frontend
