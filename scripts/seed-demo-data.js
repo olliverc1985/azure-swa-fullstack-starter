@@ -1118,7 +1118,7 @@ async function createDatabaseAndContainers(client) {
   for (const containerConfig of CONTAINERS) {
     const { container } = await database.containers.createIfNotExists({
       id: containerConfig.name,
-      partitionKey: { paths: [containerConfig.partitionKey] },
+      partitionKey: { paths: [containerConfig.partitionKey], kind: 'Hash' },
     });
     containers[containerConfig.name] = container;
     log(`  Container: ${containerConfig.name}`, '  ✓');
