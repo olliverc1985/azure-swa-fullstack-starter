@@ -270,26 +270,38 @@ See `.github/workflows/deploy.yml` for CI/CD configuration.
 
 ## Security Considerations
 
-⚠️ **Important**: This template prioritises ease of setup. For production, implement:
+⚠️ **Important**: This template prioritises ease of setup. For production, review the options below.
 
 ### Current Setup (Development-Friendly)
 - Cosmos DB: Public network access enabled
 - Cosmos DB Auth: Connection string-based
 - Key Vault: Access policies (not RBAC)
 
-### Production Recommendations
+### Platform Limitation
 
-Azure Static Web Apps Standard tier supports VNet integration for managed Functions, enabling Private Endpoint connectivity to backend services.
+Azure Static Web Apps **managed Functions** do NOT support:
+- Managed Identity
+- VNet Integration (outbound)
+- Private Endpoints to backend services (e.g., Cosmos DB)
+- Key Vault References
 
-1. **VNet Integration**: Enable SWA VNet integration via `Microsoft.Web/staticSites/networkConfig`
-2. **Cosmos DB**: Set `publicNetworkAccess: 'Disabled'` and configure Private Endpoints
-3. **RBAC Auth**: Set `disableLocalAuth: true` on Cosmos DB, use managed identity with `DefaultAzureCredential`
-4. **Key Vault**: Set `enableRbacAuthorization: true`
-5. **Network Security**: Use Private Endpoints, NSGs, and Azure Front Door with WAF
+This is a known Azure platform limitation. The SWA "Private Endpoint" feature is for inbound traffic only.
 
-Alternative: Use "Bring Your Own Functions" for full Azure Functions networking capabilities.
+### Production Options
 
-See README.md Security Considerations section for detailed Bicep examples and implementation guidance.
+1. **Keep Managed Functions** (simpler):
+   - Add IP restrictions to Cosmos DB (`ipRules` + `networkAclBypass: 'AzureServices'`)
+   - Enable Microsoft Defender for Cosmos DB
+   - Use strong, rotated connection strings
+   - Enable RBAC on Key Vault
+
+2. **Bring Your Own Functions** (full security):
+   - Create separate Azure Functions app with VNet integration
+   - Configure Private Endpoints to Cosmos DB
+   - Use managed identity with `DefaultAzureCredential`
+   - Link to SWA via `az staticwebapp functions link`
+
+See README.md Security Considerations section for detailed guidance.
 
 ---
 
@@ -298,8 +310,9 @@ See README.md Security Considerations section for detailed Bicep examples and im
 ### 2025-01-02
 - Added Security Considerations section to README.md
   - Documents current development-friendly configuration
-  - Provides production hardening recommendations
-  - Covers Cosmos DB RBAC, private endpoints, Key Vault RBAC, managed identity
+  - Clarifies Azure SWA managed Functions limitations (no VNet, no managed identity, no private endpoints)
+  - Provides two production options: enhanced managed Functions OR Bring Your Own Functions
+  - Includes Bicep examples for IP restrictions and BYOF architecture
 - Added security TODO comments to infrastructure/bicep/main.bicep
 - Added security documentation to app/api/src/shared/database.ts
 - Added Security Considerations section to page-documentation.txt
