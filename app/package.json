@@ -14,7 +14,9 @@
     "test": "vitest",
     "lint": "eslint src/**/*.ts src/**/*.tsx",
     "lint:fix": "eslint src/**/*.ts src/**/*.tsx --fix",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "seed:demo": "node ../scripts/seed-demo-data.js",
+    "seed:reset": "node ../scripts/seed-demo-data.js --reset"
   },
   "keywords": [
     "azure",

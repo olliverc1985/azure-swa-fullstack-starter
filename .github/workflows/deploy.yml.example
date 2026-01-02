@@ -1,12 +1,24 @@
 name: Deploy Azure SWA Starter
 
-# ⚠️ DEPLOYMENT DISABLED FOR OPEN SOURCE
-# This workflow is configured for manual dispatch only.
-# To enable automatic deployments:
-# 1. Configure your Azure resources (see infrastructure/bicep/main.bicep)
-# 2. Set up GitHub secrets (AZURE_CREDENTIALS, AZURE_STATIC_WEB_APPS_API_TOKEN, JWT_SECRET)
-# 3. Update resource names below to match your deployment
-# 4. Uncomment the push/pull_request triggers
+# =============================================================================
+# 📋 TEMPLATE FILE - NOT AN ACTIVE WORKFLOW
+# =============================================================================
+# This is a template showing how to deploy to Azure Static Web Apps.
+# 
+# To use this workflow in your own fork/copy:
+# 
+# 1. Rename this file: deploy.yml.example → deploy.yml
+# 2. Deploy Azure infrastructure:
+#    az deployment group create --template-file ./infrastructure/bicep/main.bicep
+# 3. Configure GitHub repository secrets:
+#    - AZURE_CREDENTIALS: Service principal JSON (see Azure docs)
+#    - AZURE_STATIC_WEB_APPS_API_TOKEN: From Azure Portal > SWA > Manage deployment token
+#    - JWT_SECRET: A secure random string (min 32 chars)
+# 4. Update resource names below (search for 'yourapp' and replace)
+# 5. Uncomment the push/pull_request triggers if you want auto-deploy
+#
+# See README.md "Deployment" section for full instructions.
+# =============================================================================
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
