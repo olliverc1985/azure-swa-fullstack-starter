@@ -1,9 +1,11 @@
 # Azure SWA Fullstack Starter - Page Documentation
 
-Last updated: 2025-12-31
+Last updated: 2025-01-02
 
 ## Overview
-A production-ready web application template for managing client registrations, invoicing, and staff management. Built with React, Azure Functions, and Cosmos DB.
+A feature-complete web application template for managing client registrations, invoicing, and staff management. Built with React, Azure Functions, and Cosmos DB.
+
+**Note**: This template is configured for ease of development. See Security Considerations section for production hardening.
 
 ## Deployment
 
@@ -266,7 +268,35 @@ See `.github/workflows/deploy.yml` for CI/CD configuration.
 
 ---
 
+## Security Considerations
+
+⚠️ **Important**: This template prioritises ease of setup. For production, implement:
+
+### Current Setup (Development-Friendly)
+- Cosmos DB: Public network access enabled
+- Cosmos DB Auth: Connection string-based
+- Key Vault: Access policies (not RBAC)
+
+### Production Recommendations
+1. **Cosmos DB**: Set `publicNetworkAccess: 'Disabled'` and use Private Endpoints
+2. **RBAC Auth**: Set `disableLocalAuth: true` on Cosmos DB, use managed identity
+3. **Key Vault**: Set `enableRbacAuthorization: true`
+4. **Network Security**: Use Azure Firewall, NSGs, and Azure Front Door with WAF
+
+See README.md Security Considerations section for detailed implementation guidance.
+
+---
+
 ## Recent Changes
+
+### 2025-01-02
+- Added Security Considerations section to README.md
+  - Documents current development-friendly configuration
+  - Provides production hardening recommendations
+  - Covers Cosmos DB RBAC, private endpoints, Key Vault RBAC, managed identity
+- Added security TODO comments to infrastructure/bicep/main.bicep
+- Added security documentation to app/api/src/shared/database.ts
+- Added Security Considerations section to page-documentation.txt
 
 ### 2025-12-19
 - Added 24-hour cancellation policy handling with new attendance statuses

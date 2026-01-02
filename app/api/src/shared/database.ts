@@ -3,6 +3,29 @@ import { getDatabaseName } from './config'
 
 let client: CosmosClient | null = null
 
+/**
+ * Get Cosmos DB client instance.
+ *
+ * ⚠️ SECURITY NOTE: Currently uses connection string authentication for ease of development.
+ * For production, consider using Azure RBAC with managed identity:
+ *
+ * ```typescript
+ * import { DefaultAzureCredential } from '@azure/identity';
+ *
+ * const credential = new DefaultAzureCredential();
+ * client = new CosmosClient({
+ *   endpoint: process.env.COSMOS_DB_ENDPOINT,
+ *   aadCredentials: credential
+ * });
+ * ```
+ *
+ * This requires:
+ * 1. Enabling managed identity on Azure Static Web Apps
+ * 2. Assigning 'Cosmos DB Built-in Data Contributor' role to the identity
+ * 3. Setting disableLocalAuth: true on Cosmos DB to enforce RBAC
+ *
+ * See README.md Security Considerations section for details.
+ */
 export function getCosmosClient(): CosmosClient {
   if (client) {
     return client

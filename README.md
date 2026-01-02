@@ -1,8 +1,10 @@
 # Azure SWA Fullstack Starter
 
-> Production-ready Azure Static Web Apps template with React, Azure Functions, Cosmos DB, and full CI/CD.
+> A comprehensive Azure Static Web Apps template with React, Azure Functions, Cosmos DB, and full CI/CD.
 
-A comprehensive starter template for building modern fullstack applications on Azure. Includes authentication, database integration, invoice generation, client management, and more—all configured and ready to deploy.
+A feature-complete starter template for building modern fullstack applications on Azure. Includes authentication, database integration, invoice generation, client management, and more—all configured and ready to deploy.
+
+> 📋 **Note**: This template is configured for ease of development and learning. See the [Security Considerations](#-security-considerations) section for production hardening recommendations.
 
 ## ✨ Features
 
@@ -140,6 +142,8 @@ Edit `infrastructure/bicep/main.bicep`:
 var appPrefix = 'yourapp'  // Change this to your app name
 ```
 
+> 🔒 **Production**: Before deploying to production, review the [Security Considerations](#-security-considerations) section for recommended hardening steps.
+
 ## 📁 Project Structure
 
 ```
@@ -210,6 +214,84 @@ npm run build
 npm run build:api
 swa deploy --env production
 ```
+
+## 🔒 Security Considerations
+
+> ⚠️ **Important**: This template prioritises ease of setup for development and learning. For production deployments, implement the security hardening measures below.
+
+### Current Setup (Development-Friendly)
+
+| Component | Current Configuration | Why |
+|-----------|----------------------|-----|
+| Cosmos DB | Public network access enabled | Simplifies local development and initial setup |
+| Cosmos DB Auth | Connection string-based | Works out of the box without identity configuration |
+| Key Vault | Access policies (not RBAC) | Simpler initial configuration |
+
+### Production Recommendations
+
+For production deployments, implement these security improvements:
+
+#### 1. Cosmos DB Security
+```bicep
+// In infrastructure/bicep/main.bicep, update the Cosmos DB resource:
+
+// Disable public network access
+publicNetworkAccess: 'Disabled'
+
+// Enable RBAC and disable key-based auth
+disableLocalAuth: true
+
+// Or if you need IP restrictions instead of private endpoints:
+publicNetworkAccess: 'Enabled'
+ipRules: [
+  { ipAddressOrRange: 'your-office-ip' }
+]
+networkAclBypass: 'AzureServices'
+```
+
+#### 2. Use Managed Identity (RBAC) Instead of Connection Strings
+```typescript
+// In app/api/src/shared/database.ts, use DefaultAzureCredential:
+import { DefaultAzureCredential } from '@azure/identity';
+import { CosmosClient } from '@azure/cosmos';
+
+const credential = new DefaultAzureCredential();
+const client = new CosmosClient({
+  endpoint: process.env.COSMOS_DB_ENDPOINT,
+  aadCredentials: credential
+});
+```
+
+Assign the `Cosmos DB Built-in Data Contributor` role to your Static Web App's managed identity:
+```bash
+az cosmosdb sql role assignment create \
+  --account-name <cosmos-account> \
+  --resource-group <resource-group> \
+  --principal-id <swa-managed-identity-object-id> \
+  --role-definition-id 00000000-0000-0000-0000-000000000002
+```
+
+#### 3. Enable RBAC on Key Vault
+```bicep
+// In infrastructure/bicep/main.bicep:
+enableRbacAuthorization: true
+```
+
+#### 4. Network Security
+- Consider using **Azure Private Endpoints** for Cosmos DB
+- Enable **Azure Firewall** or **Network Security Groups**
+- Use **Azure Front Door** with WAF for DDoS protection
+
+#### 5. Additional Hardening
+- Enable **Microsoft Defender for Cloud** on your subscription
+- Configure **diagnostic logging** to Log Analytics
+- Implement **key rotation** policies for secrets
+- Use **Azure Policy** to enforce security standards
+
+### Security Resources
+- [Azure Cosmos DB Security Best Practices](https://learn.microsoft.com/en-us/azure/cosmos-db/security)
+- [Static Web Apps Authentication](https://learn.microsoft.com/en-us/azure/static-web-apps/authentication-authorization)
+- [Azure Key Vault Best Practices](https://learn.microsoft.com/en-us/azure/key-vault/general/best-practices)
 
 ## 🧪 Testing
 
