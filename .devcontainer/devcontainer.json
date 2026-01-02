@@ -1,11 +1,9 @@
 {
   "name": "Azure SWA Fullstack Starter",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20-bookworm",
 
   "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {
-      "moby": false
-    }
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
 
   "forwardPorts": [5173, 7071, 8081],
