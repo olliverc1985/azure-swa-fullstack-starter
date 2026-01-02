@@ -137,6 +137,7 @@ resource cosmosDb 'Microsoft.DocumentDB/databaseAccounts@2023-04-15' = {
       }
     }
     publicNetworkAccess: 'Enabled'
+    networkAclBypass: 'AzureServices'
     minimalTlsVersion: 'Tls12'
   }
 }
