@@ -382,4 +382,6 @@ Contributions are welcome! Please read our [Contributing Guide](./CONTRIBUTING.m
 
 MIT © Colin Olliver
 
----Built with ❤️ using Azure Static Web Apps
+---
+
+Built using Azure Static Web Apps
