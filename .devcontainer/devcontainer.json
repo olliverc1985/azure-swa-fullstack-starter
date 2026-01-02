@@ -3,16 +3,14 @@
   "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
 
   "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
-    "ghcr.io/devcontainers/features/azure-cli:1": {},
-    "ghcr.io/devcontainers/features/github-cli:1": {}
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
 
   "forwardPorts": [5173, 7071, 8081],
   "portsAttributes": {
     "5173": { "label": "Frontend", "onAutoForward": "openBrowser" },
     "7071": { "label": "API" },
-    "8081": { "label": "Cosmos DB Emulator" }
+    "8081": { "label": "Cosmos DB" }
   },
 
   "postCreateCommand": "bash .devcontainer/setup.sh",
@@ -21,15 +19,8 @@
     "vscode": {
       "extensions": [
         "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode",
-        "bradlc.vscode-tailwindcss",
-        "ms-azuretools.vscode-azurefunctions",
-        "ms-azuretools.vscode-cosmosdb"
-      ],
-      "settings": {
-        "editor.formatOnSave": true,
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-      }
+        "bradlc.vscode-tailwindcss"
+      ]
     }
   }
 }
