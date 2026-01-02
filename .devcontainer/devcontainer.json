@@ -1,13 +1,11 @@
 {
   "name": "Azure SWA Fullstack Starter",
-  "dockerComposeFile": "docker-compose.yml",
-  "service": "app",
-  "workspaceFolder": "/workspace",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
 
   "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
     "ghcr.io/devcontainers/features/azure-cli:1": {},
-    "ghcr.io/devcontainers/features/github-cli:1": {},
-    "ghcr.io/azure/azure-dev/azd:1": {}
+    "ghcr.io/devcontainers/features/github-cli:1": {}
   },
 
   "forwardPorts": [5173, 7071, 8081],
@@ -30,8 +28,7 @@
       ],
       "settings": {
         "editor.formatOnSave": true,
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "typescript.preferences.importModuleSpecifier": "relative"
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
       }
     }
   }

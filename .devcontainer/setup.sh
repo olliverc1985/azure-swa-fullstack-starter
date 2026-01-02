@@ -1,9 +1,6 @@
 #!/bin/bash
 # =============================================================================
-# Codespaces/DevContainer Setup Script
-# =============================================================================
-# Runs automatically when the container is created.
-# Sets up dependencies and seeds demo data.
+# Codespaces Setup Script
 # =============================================================================
 
 echo ""
@@ -12,27 +9,35 @@ echo "  🚀 Setting up Azure SWA Fullstack Starter"
 echo "=============================================="
 echo ""
 
-cd /workspace
+# Install SWA CLI
+echo "📦 Installing Azure Static Web Apps CLI..."
+npm install -g @azure/static-web-apps-cli
 
 # Install frontend dependencies
 echo "📦 Installing frontend dependencies..."
-cd /workspace/app
+cd /workspaces/azure-swa-fullstack-starter/app
 npm install
 
 # Install API dependencies
 echo "📦 Installing API dependencies..."
-cd /workspace/app/api
+cd /workspaces/azure-swa-fullstack-starter/app/api
 npm install
+
+# Start Cosmos DB Emulator
+echo "🚀 Starting Cosmos DB emulator..."
+docker pull mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:vnext-preview
+docker run -d --name cosmos-emulator -p 8081:8081 -p 1234:1234 \
+  mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:vnext-preview
 
 # Create local.settings.json for API
 echo "⚙️  Creating API configuration..."
-cat > /workspace/app/api/local.settings.json << 'EOF'
+cat > /workspaces/azure-swa-fullstack-starter/app/api/local.settings.json << 'EOF'
 {
   "IsEncrypted": false,
   "Values": {
     "AzureWebJobsStorage": "",
     "FUNCTIONS_WORKER_RUNTIME": "node",
-    "COSMOS_DB_CONNECTION_STRING": "AccountEndpoint=https://cosmosdb:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==",
+    "COSMOS_DB_CONNECTION_STRING": "AccountEndpoint=https://localhost:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==",
     "COSMOS_DB_DATABASE_NAME": "appdb",
     "JWT_SECRET": "devcontainer-demo-secret-minimum-32-characters",
     "NODE_TLS_REJECT_UNAUTHORIZED": "0"
@@ -46,14 +51,14 @@ EOF
 
 # Wait for Cosmos DB to be ready
 echo "⏳ Waiting for Cosmos DB emulator to be ready..."
-echo "   (This can take 2-5 minutes on first run)"
+echo "   (This can take 1-2 minutes)"
 
-MAX_ATTEMPTS=90
+MAX_ATTEMPTS=60
 ATTEMPT=0
 READY=false
 
 while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
-    if curl -k -s https://cosmosdb:8081/_explorer/emulator.pem > /dev/null 2>&1; then
+    if curl -k -s https://localhost:8081/_explorer/emulator.pem > /dev/null 2>&1; then
         echo ""
         echo "✅ Cosmos DB emulator is ready!"
         READY=true
@@ -69,13 +74,12 @@ echo ""
 if [ "$READY" = true ]; then
     # Seed demo data
     echo "🌱 Seeding demo data..."
-    cd /workspace/app
-    COSMOS_DB_CONNECTION_STRING="AccountEndpoint=https://cosmosdb:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==" \
-    NODE_TLS_REJECT_UNAUTHORIZED=0 \
-    node ../scripts/seed-demo-data.js
+    cd /workspaces/azure-swa-fullstack-starter/app
+    NODE_TLS_REJECT_UNAUTHORIZED=0 node ../scripts/seed-demo-data.js
 else
     echo "⚠️  Cosmos DB emulator not ready yet."
-    echo "   You can seed data manually later with: npm run seed:demo"
+    echo "   You can seed data manually later with:"
+    echo "   cd app && npm run seed:demo"
 fi
 
 echo ""
@@ -85,8 +89,6 @@ echo "=============================================="
 echo ""
 echo "  To start the application, run:"
 echo "    cd app && npm run dev:swa"
-echo ""
-echo "  Then open the forwarded port 5173"
 echo ""
 echo "  Demo logins:"
 echo "    Admin:  demo@example.com / Demo123!"
