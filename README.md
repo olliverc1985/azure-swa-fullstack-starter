@@ -57,7 +57,7 @@ When you open in Codespaces, the environment automatically:
 After the Codespace opens, run this command to start everything:
 
 ```bash
-docker run -d --name cosmos -p 8081:8081 -p 1234:1234 mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:vnext-preview --protocol https && echo "⏳ Waiting 90s for Cosmos DB..." && sleep 90 && cd /workspaces/azure-swa-fullstack-starter/app/api && NODE_PATH=./node_modules NODE_TLS_REJECT_UNAUTHORIZED=0 node ../../scripts/seed-demo-data.js && cd .. && npm run build && npm run build:api && swa start dist --api-location api
+docker rm -f cosmos 2>/dev/null; docker run -d --name cosmos -p 8081:8081 -p 1234:1234 mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:vnext-preview --protocol https && echo "⏳ Waiting 90s for Cosmos DB..." && sleep 90 && cd /workspaces/azure-swa-fullstack-starter/app/api && NODE_PATH=./node_modules NODE_TLS_REJECT_UNAUTHORIZED=0 node ../../scripts/seed-demo-data.js && cd .. && npm run build && npm run build:api && swa start dist --api-location api
 ```
 
 This will:
