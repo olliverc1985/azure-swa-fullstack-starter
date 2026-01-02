@@ -6,13 +6,13 @@
 # Sets up dependencies and seeds demo data.
 # =============================================================================
 
-set -e
-
 echo ""
 echo "=============================================="
 echo "  🚀 Setting up Azure SWA Fullstack Starter"
 echo "=============================================="
 echo ""
+
+cd /workspace
 
 # Install frontend dependencies
 echo "📦 Installing frontend dependencies..."
@@ -44,29 +44,38 @@ cat > /workspace/app/api/local.settings.json << 'EOF'
 }
 EOF
 
-# Wait for Cosmos DB to be fully ready
-echo "⏳ Waiting for Cosmos DB emulator..."
-MAX_ATTEMPTS=60
+# Wait for Cosmos DB to be ready
+echo "⏳ Waiting for Cosmos DB emulator to be ready..."
+echo "   (This can take 2-5 minutes on first run)"
+
+MAX_ATTEMPTS=90
 ATTEMPT=0
+READY=false
+
 while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
     if curl -k -s https://cosmosdb:8081/_explorer/emulator.pem > /dev/null 2>&1; then
-        echo "✓ Cosmos DB emulator is ready!"
+        echo ""
+        echo "✅ Cosmos DB emulator is ready!"
+        READY=true
         break
     fi
     ATTEMPT=$((ATTEMPT + 1))
+    printf "\r   Waiting... (%d/%d)" $ATTEMPT $MAX_ATTEMPTS
     sleep 2
 done
 
-if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
-    echo "⚠️  Cosmos DB emulator not ready yet. You can run 'npm run seed:demo' manually later."
-else
+echo ""
+
+if [ "$READY" = true ]; then
     # Seed demo data
     echo "🌱 Seeding demo data..."
     cd /workspace/app
-    # Update the seed script to use the correct host
     COSMOS_DB_CONNECTION_STRING="AccountEndpoint=https://cosmosdb:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==" \
     NODE_TLS_REJECT_UNAUTHORIZED=0 \
     node ../scripts/seed-demo-data.js
+else
+    echo "⚠️  Cosmos DB emulator not ready yet."
+    echo "   You can seed data manually later with: npm run seed:demo"
 fi
 
 echo ""

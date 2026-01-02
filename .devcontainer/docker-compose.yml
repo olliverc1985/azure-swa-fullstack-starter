@@ -13,9 +13,6 @@ services:
       - COSMOS_DB_CONNECTION_STRING=AccountEndpoint=https://cosmosdb:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==
       - COSMOS_DB_DATABASE_NAME=appdb
       - JWT_SECRET=devcontainer-demo-secret-minimum-32-characters
-    depends_on:
-      cosmosdb:
-        condition: service_healthy
 
   cosmosdb:
     image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
@@ -25,11 +22,3 @@ services:
       - AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE=true
     ports:
       - "8081:8081"
-    mem_limit: 4g
-    cpus: 2.0
-    healthcheck:
-      test: ["CMD-SHELL", "curl -k https://localhost:8081/_explorer/emulator.pem || exit 1"]
-      interval: 10s
-      timeout: 10s
-      retries: 30
-      start_period: 120s
