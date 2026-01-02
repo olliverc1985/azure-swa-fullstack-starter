@@ -75,7 +75,9 @@ export function IncidentsList({ client, compact = false }: IncidentsListProps) {
   }
 
   const openIncidents = incidents.filter(i => i.status === 'open')
-  const resolvedIncidents = incidents.filter(i => i.status === 'resolved')
+  // resolvedIncidents available for future use
+  const _resolvedIncidents = incidents.filter(i => i.status === 'resolved')
+  void _resolvedIncidents // Suppress unused warning
 
   if (compact) {
     // Compact view for embedding in client card

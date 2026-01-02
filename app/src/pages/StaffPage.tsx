@@ -367,7 +367,7 @@ function StaffModal({ staff, onClose, onSuccess }: StaffModalProps) {
               </label>
               <Select
                 value={formData.userId || ''}
-                onChange={(value) => setFormData({ ...formData, userId: value || undefined })}
+                onChange={(value) => setFormData({ ...formData, userId: value })}
                 options={[
                   { value: '', label: 'Not linked (admin check-in only)' },
                   ...users.map((user: User) => ({

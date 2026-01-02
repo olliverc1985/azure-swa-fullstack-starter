@@ -129,6 +129,7 @@ export async function getComparisonData(period: 'month' | 'week' = 'month'): Pro
     current: { period: '', sessions: 0, revenue: 0, clients: 0 },
     previous: { period: '', sessions: 0, revenue: 0, clients: 0 },
     change: { sessions: 0, sessionsPercent: 0, revenue: 0, revenuePercent: 0, clients: 0, clientsPercent: 0 },
+    isPartialPeriod: false,
   }
 }
 

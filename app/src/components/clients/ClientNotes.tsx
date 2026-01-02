@@ -11,7 +11,6 @@ import {
   Button,
   Badge,
   Skeleton,
-  Select,
 } from '@/components/ui'
 import {
   DocumentTextIcon,
@@ -52,7 +51,6 @@ const NOTE_TYPE_COLORS: Record<ClientNoteType, string> = {
 
 export function ClientNotes({ client, compact = false }: ClientNotesProps) {
   const { user } = useAuth()
-  const queryClient = useQueryClient()
   const [showModal, setShowModal] = useState(false)
   const [editingNote, setEditingNote] = useState<ClientNote | null>(null)
   const [selectedNoteType, setSelectedNoteType] = useState<ClientNoteType | null>(null)

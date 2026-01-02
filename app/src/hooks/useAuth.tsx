@@ -99,9 +99,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const demoUser: User = {
       id: 'demo-user-001',
       email: 'demo@example.com',
-      name: 'Demo User',
+      firstName: 'Demo',
+      lastName: 'User',
       role: 'admin',
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     }
     
     localStorage.setItem(TOKEN_KEY, 'demo-token-not-for-production')
