@@ -29,7 +29,7 @@ A feature-complete starter template for building modern fullstack applications o
 - 🔑 **Azure Key Vault** for secrets
 - 📊 **Application Insights** for monitoring
 - 🏗️ **Bicep** for Infrastructure as Code
-- 🔄 **GitHub Actions** for CI/CD
+- 🔄 **GitHub Actions** for CI (tests run automatically)
 
 ### Application Features
 - 👥 Client management with notes and history
@@ -39,7 +39,57 @@ A feature-complete starter template for building modern fullstack applications o
 - 📈 Dashboard with analytics and trends
 - 🔒 Role-based access control (Admin/Worker)
 
-## 🚀 Quick Start
+## 🎮 Try It Now (No Azure Required)
+
+Want to see the app in action? Use **GitHub Codespaces** for a one-click demo environment with pre-populated data.
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/olliverc1985/azure-swa-fullstack-starter?quickstart=1)
+
+### What You Get
+
+When you open in Codespaces, the environment automatically:
+- ✅ Starts a Cosmos DB emulator
+- ✅ Installs all dependencies
+- ✅ Seeds a full year of demo data
+- ✅ Configures everything for you
+
+Just wait for setup to complete (~2-3 minutes), then:
+
+```bash
+cd app && npm run dev:swa
+```
+
+Click the forwarded port 5173 link to open the app.
+
+### Demo Logins
+
+| Account | Email | Password |
+|---------|-------|----------|
+| Admin | demo@example.com | Demo123! |
+| Worker | sarah.wilson@example.com | Worker123! |
+
+### Demo Data Included
+
+The seed script creates a full year of realistic data (2025 + January 2026):
+- 3 users (1 admin, 2 workers)
+- 13 clients with varied profiles
+- ~2,000+ register entries
+- ~80+ invoices (paid, sent, overdue, draft)
+- Incidents, client notes, staff records
+- Edge cases: late cancellations, overdue invoices, pending registrations
+
+### Useful Commands
+
+```bash
+npm run seed:demo    # Seed demo data (skips if exists)
+npm run seed:reset   # Clear all data and re-seed
+```
+
+> **Note**: Codespaces offers 60 free hours/month. The Cosmos DB emulator runs in the cloud container, so it works on any machine including Apple Silicon Macs.
+
+---
+
+## 🚀 Quick Start (With Azure)
 
 ### Prerequisites
 - Node.js 20+
@@ -183,14 +233,29 @@ azure-swa-fullstack-starter/
 
 ## 🚀 Deployment
 
-### Azure Setup
+### CI Pipeline (Automatic)
 
-1. **Create Resource Group**
+This repo includes a working CI pipeline (`.github/workflows/ci.yml`) that runs automatically:
+- ✅ Linting
+- ✅ Frontend tests  
+- ✅ API tests
+- ✅ Type checking
+
+### Azure Deployment (Optional)
+
+To deploy to Azure, you'll need to set up the deployment workflow:
+
+1. **Rename the template workflow**
+   ```bash
+   mv .github/workflows/deploy.yml.example .github/workflows/deploy.yml
+   ```
+
+2. **Create Resource Group**
    ```bash
    az group create --name rg-myapp-dev --location westeurope
    ```
 
-2. **Deploy Infrastructure**
+3. **Deploy Infrastructure**
    ```bash
    az deployment group create \
      --resource-group rg-myapp-dev \
@@ -198,13 +263,14 @@ azure-swa-fullstack-starter/
      --parameters environment=dev
    ```
 
-3. **Configure GitHub Secrets**
-   - `AZURE_CREDENTIALS` - Service principal JSON
-   - `AZURE_STATIC_WEB_APPS_API_TOKEN` - From Azure Portal
-   - `JWT_SECRET` - Secret for JWT signing
+4. **Configure GitHub Secrets**
+   - `AZURE_CREDENTIALS` - Service principal JSON ([how to create](https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure))
+   - `AZURE_STATIC_WEB_APPS_API_TOKEN` - From Azure Portal > Static Web App > Manage deployment token
+   - `JWT_SECRET` - Secret for JWT signing (min 32 characters)
 
-4. **Deploy**
-   Push to `main` branch to trigger deployment.
+5. **Update resource names** in `deploy.yml` (search for `yourapp`)
+
+6. **Deploy** - Push to `main` branch to trigger deployment
 
 ### Manual Deployment
 
