@@ -147,6 +147,7 @@ resource cosmosDb 'Microsoft.DocumentDB/databaseAccounts@2023-04-15' = {
     }
     // TODO: For production, set to 'Disabled' and configure Private Endpoints
     publicNetworkAccess: 'Enabled'
+    networkAclBypass: 'AzureServices'
     minimalTlsVersion: 'Tls12'
     // TODO: For production, uncomment to disable key-based auth and require RBAC:
     // disableLocalAuth: true
