@@ -229,27 +229,96 @@ swa deploy --env production
 
 ### Production Recommendations
 
-For production deployments, implement these security improvements:
+Azure Static Web Apps Standard tier **supports VNet integration** for managed Functions, enabling Private Endpoint connectivity to Cosmos DB and other Azure services. This template uses public access for simplicity, but production deployments should configure VNet integration and Private Endpoints.
 
-#### 1. Cosmos DB Security
+#### 1. Enable VNet Integration for Static Web Apps
+
 ```bicep
-// In infrastructure/bicep/main.bicep, update the Cosmos DB resource:
+// Create a VNet and subnet for SWA outbound traffic
+resource vnet 'Microsoft.Network/virtualNetworks@2023-04-01' = {
+  name: 'vnet-${appPrefix}-${environment}'
+  location: location
+  properties: {
+    addressSpace: {
+      addressPrefixes: ['10.0.0.0/16']
+    }
+    subnets: [
+      {
+        name: 'snet-swa-outbound'
+        properties: {
+          addressPrefix: '10.0.1.0/24'
+          delegations: [
+            {
+              name: 'delegation'
+              properties: {
+                serviceName: 'Microsoft.Web/staticSites'
+              }
+            }
+          ]
+        }
+      }
+      {
+        name: 'snet-private-endpoints'
+        properties: {
+          addressPrefix: '10.0.2.0/24'
+          privateEndpointNetworkPolicies: 'Disabled'
+        }
+      }
+    ]
+  }
+}
 
-// Disable public network access
-publicNetworkAccess: 'Disabled'
-
-// Enable RBAC and disable key-based auth
-disableLocalAuth: true
-
-// Or if you need IP restrictions instead of private endpoints:
-publicNetworkAccess: 'Enabled'
-ipRules: [
-  { ipAddressOrRange: 'your-office-ip' }
-]
-networkAclBypass: 'AzureServices'
+// Link SWA to subnet for outbound VNet integration
+resource swaVnetConfig 'Microsoft.Web/staticSites/networkConfig@2022-09-01' = {
+  parent: staticWebApp
+  name: 'virtualNetwork'
+  properties: {
+    subnetResourceId: vnet.properties.subnets[0].id
+  }
+}
 ```
 
-#### 2. Use Managed Identity (RBAC) Instead of Connection Strings
+#### 2. Configure Cosmos DB with Private Endpoint
+
+```bicep
+// In infrastructure/bicep/main.bicep, update the Cosmos DB resource:
+resource cosmosDb 'Microsoft.DocumentDB/databaseAccounts@2023-04-15' = {
+  name: cosmosDbName
+  location: location
+  properties: {
+    // ... existing properties ...
+    
+    // Disable public network access
+    publicNetworkAccess: 'Disabled'
+    
+    // Enable RBAC and disable key-based auth
+    disableLocalAuth: true
+  }
+}
+
+// Create Private Endpoint for Cosmos DB
+resource cosmosPrivateEndpoint 'Microsoft.Network/privateEndpoints@2023-04-01' = {
+  name: 'pe-${cosmosDbName}'
+  location: location
+  properties: {
+    subnet: {
+      id: vnet.properties.subnets[1].id  // Private endpoints subnet
+    }
+    privateLinkServiceConnections: [
+      {
+        name: 'cosmos-connection'
+        properties: {
+          privateLinkServiceId: cosmosDb.id
+          groupIds: ['Sql']
+        }
+      }
+    ]
+  }
+}
+```
+
+#### 3. Use Managed Identity (RBAC) Instead of Connection Strings
+
 ```typescript
 // In app/api/src/shared/database.ts, use DefaultAzureCredential:
 import { DefaultAzureCredential } from '@azure/identity';
@@ -263,32 +332,44 @@ const client = new CosmosClient({
 ```
 
 Assign the `Cosmos DB Built-in Data Contributor` role to your Static Web App's managed identity:
+
 ```bash
+# Get the SWA's managed identity principal ID
+SWA_PRINCIPAL_ID=$(az staticwebapp show \
+  --name <swa-name> \
+  --resource-group <resource-group> \
+  --query "identity.principalId" -o tsv)
+
+# Assign Cosmos DB data contributor role
 az cosmosdb sql role assignment create \
   --account-name <cosmos-account> \
   --resource-group <resource-group> \
-  --principal-id <swa-managed-identity-object-id> \
+  --principal-id $SWA_PRINCIPAL_ID \
   --role-definition-id 00000000-0000-0000-0000-000000000002
 ```
 
-#### 3. Enable RBAC on Key Vault
+#### 4. Enable RBAC on Key Vault
+
 ```bicep
 // In infrastructure/bicep/main.bicep:
 enableRbacAuthorization: true
 ```
 
-#### 4. Network Security
-- Consider using **Azure Private Endpoints** for Cosmos DB
-- Enable **Azure Firewall** or **Network Security Groups**
-- Use **Azure Front Door** with WAF for DDoS protection
-
 #### 5. Additional Hardening
+
 - Enable **Microsoft Defender for Cloud** on your subscription
 - Configure **diagnostic logging** to Log Analytics
 - Implement **key rotation** policies for secrets
 - Use **Azure Policy** to enforce security standards
+- Use **Azure Front Door** with WAF for DDoS protection
+
+### Alternative: Bring Your Own Functions
+
+If you need capabilities beyond what SWA managed Functions provide, you can use [Bring Your Own Functions](https://learn.microsoft.com/en-us/azure/static-web-apps/functions-bring-your-own) to link an external Azure Functions app with full VNet/Private Endpoint support.
 
 ### Security Resources
+
+- [Azure Static Web Apps Networking](https://learn.microsoft.com/en-us/azure/static-web-apps/apis-functions)
 - [Azure Cosmos DB Security Best Practices](https://learn.microsoft.com/en-us/azure/cosmos-db/security)
 - [Static Web Apps Authentication](https://learn.microsoft.com/en-us/azure/static-web-apps/authentication-authorization)
 - [Azure Key Vault Best Practices](https://learn.microsoft.com/en-us/azure/key-vault/general/best-practices)
