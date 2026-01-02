@@ -3,7 +3,9 @@
   "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
 
   "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "moby": false
+    }
   },
 
   "forwardPorts": [5173, 7071, 8081],
