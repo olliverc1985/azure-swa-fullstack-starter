@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============================================================================
-# Codespaces Setup Script - Minimal version
+# Codespaces Setup Script
 # =============================================================================
 
 echo ""
@@ -24,10 +24,11 @@ echo "📦 Installing dependencies..."
 cd "$WORKSPACE/app" && npm install
 cd "$WORKSPACE/app/api" && npm install
 
-# Start Cosmos DB Emulator
-echo "🚀 Starting Cosmos DB emulator..."
+# Start Cosmos DB Emulator with HTTPS
+echo "🚀 Starting Cosmos DB emulator (with HTTPS)..."
 docker run -d --name cosmos -p 8081:8081 -p 1234:1234 \
-  mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:vnext-preview
+  mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:vnext-preview \
+  --protocol https
 
 # Create local.settings.json
 echo "⚙️  Creating config..."
@@ -46,21 +47,22 @@ cat > "$WORKSPACE/app/api/local.settings.json" << 'EOF'
 }
 EOF
 
-# Wait for emulator
-echo "⏳ Waiting for Cosmos DB..."
-for i in {1..60}; do
-  if curl -ks https://localhost:8081/ > /dev/null 2>&1; then
-    echo "✅ Cosmos DB ready!"
-    cd "$WORKSPACE/app" && NODE_TLS_REJECT_UNAUTHORIZED=0 node ../scripts/seed-demo-data.js
-    break
-  fi
-  sleep 2
-  printf "\r   Waiting... %d/60" $i
-done
+# Wait for emulator (vnext-preview needs ~90 seconds)
+echo "⏳ Waiting for Cosmos DB emulator to start (this takes ~90 seconds)..."
+sleep 90
+
+# Seed demo data (must run from api directory with NODE_PATH set)
+echo "🌱 Seeding demo data..."
+cd "$WORKSPACE/app/api" && NODE_PATH=./node_modules NODE_TLS_REJECT_UNAUTHORIZED=0 node ../../scripts/seed-demo-data.js
 
 echo ""
 echo "=============================================="
-echo "  ✅ Ready! Run: cd app && npm run dev:swa"
+echo "  ✅ Setup complete!"
 echo "=============================================="
+echo ""
+echo "  To start the app, run:"
+echo "  cd $WORKSPACE/app && npm run build && npm run build:api && swa start dist --api-location api"
+echo ""
+echo "  Then open port 4280"
 echo "  Login: demo@example.com / Demo123!"
 echo ""
