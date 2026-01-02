@@ -48,18 +48,25 @@ Want to see the app in action? Use **GitHub Codespaces** for a one-click demo en
 ### What You Get
 
 When you open in Codespaces, the environment automatically:
-- ✅ Starts a Cosmos DB emulator
 - ✅ Installs all dependencies
-- ✅ Seeds a full year of demo data
-- ✅ Configures everything for you
+- ✅ Starts Docker (for the Cosmos DB emulator)
+- ✅ Configures the API settings
 
-Just wait for setup to complete (~2-3 minutes), then:
+### First Time Setup
+
+After the Codespace opens, run this command to start everything:
 
 ```bash
-cd app && npm run dev:swa
+docker run -d --name cosmos -p 8081:8081 -p 1234:1234 mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:vnext-preview --protocol https && echo "⏳ Waiting 90s for Cosmos DB..." && sleep 90 && cd /workspaces/azure-swa-fullstack-starter/app/api && NODE_PATH=./node_modules NODE_TLS_REJECT_UNAUTHORIZED=0 node ../../scripts/seed-demo-data.js && cd .. && npm run build && npm run build:api && swa start dist --api-location api
 ```
 
-Click the forwarded port 5173 link to open the app.
+This will:
+1. Start the Cosmos DB emulator (wait ~90 seconds)
+2. Seed demo data
+3. Build the app
+4. Start the development server
+
+Click the forwarded port **4280** link to open the app.
 
 ### Demo Logins
 
@@ -81,11 +88,17 @@ The seed script creates a full year of realistic data (2025 + January 2026):
 ### Useful Commands
 
 ```bash
-npm run seed:demo    # Seed demo data (skips if exists)
-npm run seed:reset   # Clear all data and re-seed
+# Seed demo data (run from app/api directory)
+cd /workspaces/azure-swa-fullstack-starter/app/api && NODE_PATH=./node_modules NODE_TLS_REJECT_UNAUTHORIZED=0 node ../../scripts/seed-demo-data.js
+
+# Reset and re-seed all data
+cd /workspaces/azure-swa-fullstack-starter/app/api && NODE_PATH=./node_modules NODE_TLS_REJECT_UNAUTHORIZED=0 node ../../scripts/seed-demo-data.js --reset
+
+# Build and run (after seeding)
+cd /workspaces/azure-swa-fullstack-starter/app && npm run build && npm run build:api && swa start dist --api-location api
 ```
 
-> **Note**: Codespaces offers 60 free hours/month. The Cosmos DB emulator runs in the cloud container, so it works on any machine including Apple Silicon Macs.
+> **Note**: Codespaces offers 60 free hours/month on 2-core machines. The Cosmos DB emulator runs in Docker within the Codespace, so it works on any machine including Apple Silicon Macs.
 
 ---
 
