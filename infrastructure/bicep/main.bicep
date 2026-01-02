@@ -59,6 +59,8 @@ resource staticWebApp 'Microsoft.Web/staticSites@2022-03-01' = {
 }
 
 // Key Vault for secrets management
+// ⚠️ SECURITY NOTE: Using access policies for simplicity.
+// For production, consider setting enableRbacAuthorization: true
 resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: keyVaultName
   location: location
@@ -66,6 +68,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
     enabledForDeployment: false
     enabledForDiskEncryption: false
     enabledForTemplateDeployment: false
+    // TODO: For production, set to true and use Azure RBAC instead of access policies
     enableRbacAuthorization: false
     enableSoftDelete: true
     softDeleteRetentionInDays: 90
@@ -108,6 +111,12 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
 }
 
 // Cosmos DB for data storage (Serverless)
+// ⚠️ SECURITY NOTE: Current configuration prioritises ease of development.
+// For production, consider:
+//   - Set publicNetworkAccess: 'Disabled' and use Private Endpoints
+//   - Set disableLocalAuth: true to enforce RBAC (managed identity) only
+//   - Add ipRules to restrict access to specific IP ranges
+//   - See README.md Security Considerations section for details
 resource cosmosDb 'Microsoft.DocumentDB/databaseAccounts@2023-04-15' = {
   name: cosmosDbName
   location: location
@@ -136,8 +145,11 @@ resource cosmosDb 'Microsoft.DocumentDB/databaseAccounts@2023-04-15' = {
         tier: 'Continuous7Days'
       }
     }
+    // TODO: For production, set to 'Disabled' and configure Private Endpoints
     publicNetworkAccess: 'Enabled'
     minimalTlsVersion: 'Tls12'
+    // TODO: For production, uncomment to disable key-based auth and require RBAC:
+    // disableLocalAuth: true
   }
 }
 
