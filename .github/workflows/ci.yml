@@ -16,7 +16,7 @@ on:
       - '.github/workflows/ci.yml'
 
 env:
-  NODE_VERSION: '20.x'
+  NODE_VERSION: '22.x'
 
 jobs:
   lint-and-test:

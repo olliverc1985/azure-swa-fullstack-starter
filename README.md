@@ -22,7 +22,7 @@ A feature-complete starter template for building modern fullstack applications o
 - 📱 **Responsive design** - works on all devices
 
 ### Backend
-- ⚡ **Azure Functions** (Node.js 20)
+- ⚡ **Azure Functions** (Node.js 22)
 - 🗄️ **Azure Cosmos DB** (Serverless)
 - 🔐 **JWT authentication** with bcrypt
 - ✅ **Input validation** with comprehensive error handling
@@ -109,7 +109,7 @@ cd /workspaces/azure-swa-fullstack-starter/app && npm run build && npm run build
 ## 🚀 Quick Start (With Azure)
 
 ### Prerequisites
-- Node.js 20+
+- Node.js 22+
 - Azure CLI
 - Azure Functions Core Tools v4
 - Azure subscription
@@ -437,7 +437,7 @@ npm test -- --coverage
 | Category | Technology |
 |----------|------------|
 | Frontend | React 18, TypeScript, Vite, Tailwind CSS |
-| Backend | Azure Functions, Node.js 20 |
+| Backend | Azure Functions, Node.js 22 |
 | Database | Azure Cosmos DB (Serverless) |
 | Auth | JWT, bcrypt |
 | Hosting | Azure Static Web Apps |

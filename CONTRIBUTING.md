@@ -10,7 +10,7 @@ By participating in this project, you agree to maintain a respectful and inclusi
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 22+
 - Azure CLI
 - Azure Functions Core Tools v4
 - Git
